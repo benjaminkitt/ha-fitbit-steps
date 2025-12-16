@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:developers.home-assistant.io)",
+      "WebFetch(domain:dev.fitbit.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

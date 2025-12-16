@@ -1,0 +1,15 @@
+sync_workout:
+  name: Sync Workout to Fitbit
+  description: Manually sync current treadmill session to Fitbit
+  fields:
+    distance:
+      name: Distance Override
+      description: Override distance in miles (uses sensor value if not provided)
+      example: 2.5
+      selector:
+        number:
+          min: 0.01
+          max: 100
+          step: 0.01
+          unit_of_measurement: "mi"
+          mode: box

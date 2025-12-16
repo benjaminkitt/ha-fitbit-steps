@@ -1,0 +1,12 @@
+{
+  "domain": "fitbit_treadmill_sync",
+  "name": "Fitbit Treadmill Sync",
+  "codeowners": ["@benjaminkitt"],
+  "config_flow": true,
+  "dependencies": ["application_credentials"],
+  "documentation": "https://github.com/benjaminkitt/ha-fitbit-steps",
+  "integration_type": "service",
+  "iot_class": "cloud_push",
+  "requirements": ["fitbit==0.3.1", "oauthlib==3.2.2"],
+  "version": "1.0.0"
+}

@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Fitbit Treadmill Sync",
+        "description": "This integration will sync your treadmill workouts to Fitbit. You'll need to authorize access to your Fitbit account."
+      },
+      "entities": {
+        "title": "Select Treadmill Entities",
+        "description": "Select the sensors that track your treadmill status and distance.",
+        "data": {
+          "status_entity": "Status Entity (changes to 'Post-Workout')",
+          "distance_entity": "Distance Entity (in miles)"
+        }
+      },
+      "conversion": {
+        "title": "Configure Step Conversion",
+        "description": "Provide either your stride length or height to calculate steps from distance. The integration will try to use Fitbit's API first, falling back to manual calculation.",
+        "data": {
+          "activity_type": "Activity Type",
+          "stride_length": "Stride Length (ft)",
+          "user_height": "Height (inches)",
+          "auto_sync": "Automatically sync workouts",
+          "notification_enabled": "Show sync notifications"
+        },
+        "data_description": {
+          "stride_length": "Your stride length in feet (optional if height provided)",
+          "user_height": "Your height in inches (optional if stride provided)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate with Fitbit",
+        "description": "Your Fitbit authentication has expired or been revoked. Please sign in again to continue syncing workouts."
+      }
+    },
+    "error": {
+      "entity_not_found": "Selected entity does not exist",
+      "stride_or_height_required": "Please provide either stride length or height",
+      "stride_out_of_range": "Stride length must be between 0.5 and 5.0 feet",
+      "height_out_of_range": "Height must be between 36 and 96 inches",
+      "auth_failed": "Authentication failed. Please try again.",
+      "unknown": "An unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This treadmill is already configured",
+      "oauth_error": "OAuth authentication failed"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure Fitbit Treadmill Sync",
+        "description": "Update your treadmill entities and step conversion settings.",
+        "data": {
+          "status_entity": "Status Entity",
+          "distance_entity": "Distance Entity",
+          "activity_type": "Activity Type",
+          "stride_length": "Stride Length (ft)",
+          "user_height": "Height (inches)",
+          "auto_sync": "Automatically sync workouts",
+          "notification_enabled": "Show sync notifications"
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "Selected entity does not exist",
+      "stride_or_height_required": "Please provide either stride length or height",
+      "stride_out_of_range": "Stride length must be between 0.5 and 5.0 feet",
+      "height_out_of_range": "Height must be between 36 and 96 inches"
+    }
+  },
+  "services": {
+    "sync_workout": {
+      "name": "Sync Workout to Fitbit",
+      "description": "Manually sync current treadmill session to Fitbit",
+      "fields": {
+        "distance": {
+          "name": "Distance Override",
+          "description": "Override distance in miles (uses sensor value if not provided)"
+        }
+      }
+    }
+  }
+}
