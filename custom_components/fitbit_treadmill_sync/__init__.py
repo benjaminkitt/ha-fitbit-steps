@@ -6,9 +6,9 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET, Platform
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_entry_oauth2_flow, config_validation as cv
 
 from .api import FitbitAPI
 from .const import (
@@ -34,6 +34,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Fitbit Treadmill Sync from a config entry."""
     _LOGGER.debug("Setting up Fitbit Treadmill Sync")
 
+    # Get the OAuth2 implementation
+    implementation = (
+        await config_entry_oauth2_flow.async_get_config_entry_implementation(
+            hass, entry
+        )
+    )
+
     # Extract OAuth tokens from config entry
     token_data = entry.data.get("token", {})
     access_token = token_data.get(CONF_OAUTH_ACCESS_TOKEN)
@@ -41,14 +48,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     expires_at = token_data.get(CONF_OAUTH_EXPIRES_AT, 0)
 
     # Get OAuth client credentials from implementation
-    implementation = entry.data.get("auth_implementation")
-
-    # Try to get client credentials from the entry data
-    client_id = entry.data.get(CONF_CLIENT_ID)
-    client_secret = entry.data.get(CONF_CLIENT_SECRET)
+    client_id = implementation.client_id
+    client_secret = implementation.client_secret
 
     if not client_id or not client_secret:
-        _LOGGER.error("OAuth client credentials not found in config entry")
+        _LOGGER.error("OAuth client credentials not found in implementation")
         return False
 
     # Create API client
