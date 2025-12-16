@@ -6,11 +6,6 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.components.application_credentials import (
-    ClientCredential,
-    async_import_client_credential,
-)
-from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_entry_oauth2_flow, selector
@@ -34,8 +29,6 @@ from .const import (
     MAX_STRIDE,
     MIN_HEIGHT,
     MIN_STRIDE,
-    OAUTH2_AUTHORIZE,
-    OAUTH2_TOKEN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,6 +42,12 @@ class FitbitOAuth2FlowHandler(
     DOMAIN = DOMAIN
     VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize flow."""
+        super().__init__()
+        self.entity_config: dict[str, Any] = {}
+        self.conversion_config: dict[str, Any] = {}
+
     @property
     def logger(self) -> logging.Logger:
         """Return logger."""
@@ -57,19 +56,13 @@ class FitbitOAuth2FlowHandler(
     @property
     def extra_authorize_data(self) -> dict[str, Any]:
         """Extra data that needs to be appended to the authorize url."""
-        return {"scope": " ".join(["activity"])}
+        return {"scope": "activity"}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle a flow initialized by the user."""
-        # Check if Application Credentials are configured
-        return await self.async_step_pick_implementation()
-
-    async def async_oauth_create_entry(self, data: dict[str, Any]) -> FlowResult:
-        """Create an entry for Fitbit OAuth."""
-        # After OAuth, proceed to entity configuration
-        self.oauth_data = data
+        # Start with entity configuration BEFORE OAuth
         return await self.async_step_entities()
 
     async def async_step_entities(
@@ -141,9 +134,8 @@ class FitbitOAuth2FlowHandler(
                 if stride_length is None and user_height is not None:
                     stride_length = (user_height * DEFAULT_STRIDE_MULTIPLIER) / INCHES_TO_FEET
 
-                # Combine all configuration
-                config_data = {
-                    **self.oauth_data,
+                # Store conversion config
+                self.conversion_config = {
                     CONF_ACTIVITY_TYPE: activity_type,
                     CONF_STRIDE_LENGTH: stride_length,
                     CONF_AUTO_SYNC: user_input.get(CONF_AUTO_SYNC, DEFAULT_AUTO_SYNC),
@@ -152,17 +144,8 @@ class FitbitOAuth2FlowHandler(
                     ),
                 }
 
-                # Store entity config in options
-                await self.async_set_unique_id(
-                    f"fitbit_treadmill_{self.entity_config[CONF_STATUS_ENTITY]}"
-                )
-                self._abort_if_unique_id_configured()
-
-                return self.async_create_entry(
-                    title="Fitbit Treadmill Sync",
-                    data=config_data,
-                    options=self.entity_config,
-                )
+                # Now proceed to OAuth flow
+                return await self.async_step_pick_implementation()
 
         # Show conversion settings form
         data_schema = vol.Schema(
@@ -210,6 +193,27 @@ class FitbitOAuth2FlowHandler(
                 "stride_desc": "Your stride length in feet (optional if height provided)",
                 "height_desc": "Your height in inches (optional if stride provided)",
             },
+        )
+
+    async def async_oauth_create_entry(self, data: dict[str, Any]) -> FlowResult:
+        """Create an entry for Fitbit OAuth."""
+        # Combine OAuth data with entity and conversion config
+        config_data = {
+            **data,
+            **self.conversion_config,
+        }
+
+        # Set unique ID based on status entity
+        await self.async_set_unique_id(
+            f"fitbit_treadmill_{self.entity_config[CONF_STATUS_ENTITY]}"
+        )
+        self._abort_if_unique_id_configured()
+
+        # Create entry with all configuration
+        return self.async_create_entry(
+            title="Fitbit Treadmill Sync",
+            data=config_data,
+            options=self.entity_config,
         )
 
     async def async_step_reauth(self, entry_data: dict[str, Any]) -> FlowResult:
